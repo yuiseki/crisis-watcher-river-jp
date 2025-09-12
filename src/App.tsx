@@ -29,7 +29,8 @@ export const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const url = `/data/latest.json`
+  // Use relative path so it works under GitHub Pages base
+  const url = `data/latest.json`
 
   useEffect(() => {
     let alive = true
