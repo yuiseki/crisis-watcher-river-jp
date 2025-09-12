@@ -1,0 +1,46 @@
+name: Hourly River Data
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update_data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Use Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Generate latest snapshot
+        run: npm run river
+      - name: Commit and push changes
+        shell: bash
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Stage only data changes
+          git add public/data || true
+          # If nothing staged, exit early
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          # Rebase on latest main to reduce push conflicts
+          git pull --rebase origin "${GITHUB_REF_NAME:-main}" || true
+          ts=$(TZ=Asia/Tokyo date '+%Y-%m-%d %H:00 JST')
+          git commit -m "chore(data): update river snapshots (${ts})"
+          git push origin HEAD:main
+
