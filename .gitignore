@@ -17,9 +17,7 @@ pnpm-debug.log*
 
 # Editor/OS
 .DS_Store
-.vscode/
 
 # Caches
 .cache/
 .turbo/
-
